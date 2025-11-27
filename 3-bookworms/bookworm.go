@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -25,7 +26,8 @@ func loadBookworms(filePath string) ([]Bookworm, error) {
 
 	var bookworms []Bookworm
 
-	err = json.NewDecoder(f).Decode(&bookworms)
+	reader := bufio.NewReaderSize(f, 1024*1024)
+	err = json.NewDecoder(reader).Decode(&bookworms)
 	if err != nil {
 		return nil, err
 	}
