@@ -1,0 +1,77 @@
+package gordle
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+)
+
+type Game struct {
+	reader      *bufio.Reader
+	solution    []rune
+	maxAttempts int
+}
+
+// New returns a Game, which can be used to play
+func New(playerInput io.Reader) *Game {
+	g := &Game{reader: bufio.NewReader(playerInput)}
+	return g
+}
+
+// Play runs the game
+func (g *Game) Play() {
+	fmt.Println("Welcome to Gordle!")
+	guess := g.ask()
+	fmt.Printf("Your guess is: %s\n", string(guess))
+}
+
+const solutionLength = 5
+
+// ask reads input until a valid suggestion is mage (and returned)
+func (g *Game) ask() []rune {
+	fmt.Printf("Enter a %d-character guess:\n", solutionLength)
+	for {
+		input, _, err := g.reader.ReadLine()
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Gordle failed to read your guess: %s\n", err.Error())
+			continue
+		}
+		guess := splitToUppercaseCharacters(string(input))
+		err = g.validateGuess(guess)
+		if err != nil {
+			_, _ = fmt.Fprintf(
+				os.Stderr,
+				"Your attempt is invalid with Grodle's solution: %s\n",
+				err.Error(),
+			)
+		} else {
+			return guess
+		}
+	}
+}
+
+// errInvalidWordLength is returned when
+// the guess has the wrong number of characters.
+var errInvalidWordLength = fmt.Errorf("invalid guess, word doesn't have the " +
+	"same number of characters as the solution")
+
+// validateGuess ensures the guess is valid enough.
+func (g *Game) validateGuess(guess []rune) error {
+	if len(guess) != solutionLength {
+		return fmt.Errorf(
+			"expected %d, got %d, %w",
+			solutionLength,
+			len(guess),
+			errInvalidWordLength,
+		)
+	}
+	return nil
+}
+
+// splitToUppercaseCharacters is a naive implementation to turn a string
+// into a list of characters
+func splitToUppercaseCharacters(input string) []rune {
+	return []rune(strings.ToUpper(input))
+}
