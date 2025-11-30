@@ -46,11 +46,9 @@ func (g *Game) Play() {
 	)
 }
 
-const solutionLength = 5
-
 // ask reads input until a valid suggestion is mage (and returned)
 func (g *Game) ask() []rune {
-	fmt.Printf("Enter a %d-character guess:\n", solutionLength)
+	fmt.Printf("Enter a %d-character guess:\n", len(g.solution))
 	for {
 		input, _, err := g.reader.ReadLine()
 		if err != nil {
@@ -78,10 +76,10 @@ var errInvalidWordLength = fmt.Errorf("invalid guess, word doesn't have the " +
 
 // validateGuess ensures the guess is valid enough.
 func (g *Game) validateGuess(guess []rune) error {
-	if len(guess) != solutionLength {
+	if len(guess) != len(g.solution) {
 		return fmt.Errorf(
 			"expected %d, got %d, %w",
-			solutionLength,
+			len(g.solution),
 			len(guess),
 			errInvalidWordLength,
 		)
