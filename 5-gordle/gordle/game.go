@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -15,16 +16,34 @@ type Game struct {
 }
 
 // New returns a Game, which can be used to play
-func New(playerInput io.Reader) *Game {
-	g := &Game{reader: bufio.NewReader(playerInput)}
-	return g
+func New(playerInput io.Reader, corpus []string, maxAttempts int) (*Game, error) {
+	if len(corpus) == 0 {
+		return nil, ErrorCorpusIsEmpty
+	}
+	g := &Game{
+		reader:      bufio.NewReader(playerInput),
+		solution:    splitToUppercaseCharacters(pickWord(corpus)),
+		maxAttempts: maxAttempts,
+	}
+	return g, nil
 }
 
 // Play runs the game
 func (g *Game) Play() {
 	fmt.Println("Welcome to Gordle!")
-	guess := g.ask()
-	fmt.Printf("Your guess is: %s\n", string(guess))
+	for attempt := 1; attempt <= g.maxAttempts; attempt++ {
+		guess := g.ask()
+		if slices.Equal(guess, g.solution) {
+			fmt.Printf("👏 Congratulations! You guessed the word in %d attempts!\n", attempt)
+			return
+		}
+		fmt.Println(computeFeedback(guess, g.solution).String())
+	}
+	fmt.Printf(
+		"😞 You failed to guess the word in %d attempts. The solution was: %s\n",
+		g.maxAttempts,
+		string(g.solution),
+	)
 }
 
 const solutionLength = 5
@@ -74,4 +93,41 @@ func (g *Game) validateGuess(guess []rune) error {
 // into a list of characters
 func splitToUppercaseCharacters(input string) []rune {
 	return []rune(strings.ToUpper(input))
+}
+
+func computeFeedback(guess []rune, solution []rune) feedback {
+	result := make(feedback, len(guess))
+	if len(guess) != len(solution) {
+		_,_=fmt.Fprintf(
+			os.Stderr, 
+			"Guess length (%d) is't equal to solution's length (%d)",
+			len(guess), 
+			len(solution),
+		)
+		return result
+	}
+	used := make([]bool, len(guess))
+	for posInGuest,character := range guess {
+		if character != solution[posInGuest] {
+			continue
+		}
+		result[posInGuest] = correctPosition
+		used[posInGuest] = true
+	}
+	for posInGuess, character := range guess {
+		if result[posInGuess] != absentCharacter {
+			continue
+		}
+		for posInSolution, target := range solution {
+			if used[posInSolution] {
+				continue
+			}
+			if target == character {
+				result[posInGuess] = wrongPosition
+				used[posInSolution] = true
+				break
+			}
+		}
+	}
+	return result
 }
