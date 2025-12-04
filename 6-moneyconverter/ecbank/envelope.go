@@ -61,7 +61,7 @@ func readRateFromResponse(source, target string, respBody io.Reader) (money.Exch
 	}
 	rate, err := ecbMessage.exchangeRate(source, target)
 	if err != nil {
-		return money.ExchangeRate{}, fmt.Errorf("%w: %s", ErrChangeRateNotFound, err)
+		return money.ExchangeRate{}, err
 	}
 	return rate, nil
 }

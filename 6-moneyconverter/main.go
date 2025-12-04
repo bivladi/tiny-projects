@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"learngo/moneyconverter/ecbank"
 	"learngo/moneyconverter/money"
 	"os"
+	"time"
 )
 
 func main() {
@@ -16,11 +18,12 @@ func main() {
 	value := parseDecimal(flag.Arg(0))
 	amount, err := money.NewAmount(value, fromCurrency)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(1)
 	}
 	fmt.Println("Amount:", amount, "; Currency: ", toCurrency)
-	convertedAmount, err := money.Convert(amount, toCurrency)
+	rates := ecbank.NewClient(30 * time.Second)
+	convertedAmount, err := money.Convert(amount, toCurrency, rates)
 	if err != nil {
 		_, _ = fmt.Fprintf(
 			os.Stderr,
