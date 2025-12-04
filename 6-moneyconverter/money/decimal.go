@@ -1,6 +1,7 @@
 package money
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -9,27 +10,27 @@ import (
 // example:
 // 1.52 = 152 * 10^(-2) will be stored as {152, 2}
 type Decimal struct {
-	// subunits is the amount of subunits. 
-    // Multiply it by the precision to get the real value
+	// subunits is the amount of subunits.
+	// Multiply it by the precision to get the real value
 	subunits int64
-    // Number of "subunits" in a unit, expressed as a power of 10.
+	// Number of "subunits" in a unit, expressed as a power of 10.
 	precision byte
 }
 
 const (
-    // ErrInvalidDecimal is returned if the decimal is malformed.
-    ErrInvalidDecimal = Error("unable to convert the decimal")
+	// ErrInvalidDecimal is returned if the decimal is malformed.
+	ErrInvalidDecimal = Error("unable to convert the decimal")
 
-    // ErrTooLarge is returned if the quantity is too large
-    // this would cause floating point precision errors.
-    ErrTooLarge = Error("quantity over 10^12 is too large")
+	// ErrTooLarge is returned if the quantity is too large
+	// this would cause floating point precision errors.
+	ErrTooLarge = Error("quantity over 10^12 is too large")
 )
 
 // maxDecimal value is a thousand billion, using the short scale -- 10^12.
 const maxDecimal = 1e12
 
 // ParseDecimal converts a string into its Decimal representation.
-// It assumes there is up to one decimal separator, 
+// It assumes there is up to one decimal separator,
 // and that the separator is '.' (full stop character).
 func ParseDecimal(value string) (Decimal, error) {
 	intPart, fracPart, _ := strings.Cut(value, ".")
@@ -44,12 +45,24 @@ func ParseDecimal(value string) (Decimal, error) {
 	return Decimal{subunits: subunits, precision: precision}, nil
 }
 
+// String implements Stringer interface
+func (d *Decimal) String() string {
+	if d.precision == 0 {
+		return fmt.Sprintf("%d", d.subunits)
+	}
+	centsPerUnit := pow10(d.precision)
+	frac := d.subunits % centsPerUnit
+	integer := d.subunits / centsPerUnit
+	decimalFormat := "%d.%0" + strconv.Itoa(int(d.precision)) + "d"
+	return fmt.Sprintf(decimalFormat, integer, frac)
+}
+
 func (d *Decimal) simplify() {
 	// Using %10 returns the last digit in base 10 of a number.
-    // If the precision is positive, that digit belongs 
-    // to the right side of the decimal separator.
-    for d.subunits%10 == 0 && d.precision > 0 {
-        d.precision--
-        d.subunits /= 10
-    }
+	// If the precision is positive, that digit belongs
+	// to the right side of the decimal separator.
+	for d.subunits%10 == 0 && d.precision > 0 {
+		d.precision--
+		d.subunits /= 10
+	}
 }
