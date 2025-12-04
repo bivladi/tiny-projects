@@ -6,6 +6,15 @@ import (
 	"testing"
 )
 
+type stubRate struct {
+	rate money.ExchangeRate
+	err  error
+}
+
+func (s stubRate) FetchExchangeRate(_, _ money.Currency) (money.ExchangeRate, error) {
+	return s.rate, s.err
+}
+
 func TestConvert(t *testing.T) {
 	tt := map[string]struct {
 		amount   money.Amount
@@ -28,7 +37,7 @@ func TestConvert(t *testing.T) {
 	}
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			amount, err := money.Convert(tc.amount, tc.to)
+			amount, err := money.Convert(tc.amount, tc.to, stubRate{rate: mustParceExchangeRate(t, "2.0"), err: nil})
 			tc.validate(t, amount, err)
 		})
 	}
@@ -58,4 +67,14 @@ func mustParseAmount(t *testing.T, value string, code string) money.Amount {
 		t.Fatalf("unable to create amount %s", err.Error())
 	}
 	return amount
+}
+
+func mustParceExchangeRate(t *testing.T, rate string) money.ExchangeRate {
+	t.Helper()
+
+	decimal, err := money.ParseDecimal(rate)
+	if err != nil {
+		t.Fatalf("unable to parse decimal %s, err: %v", rate, err)
+	}
+	return money.ExchangeRate(decimal)
 }

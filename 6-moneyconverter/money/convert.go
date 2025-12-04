@@ -5,8 +5,12 @@ import "math"
 // ExchangeRate represents a rate to convert from one currency to another.
 type ExchangeRate Decimal
 
-func Convert(amount Amount, to Currency) (Amount, error) {
-	convertedValue := applyExchangeRate(amount, to, ExchangeRate{subunits: 2, precision: 0})
+func Convert(amount Amount, to Currency, rates ratesFetcher) (Amount, error) {
+	rate, err := rates.FetchExchangeRate(amount.currency, to)
+	if err != nil {
+		return Amount{}, err
+	}
+	convertedValue := applyExchangeRate(amount, to, rate)
 	if err := convertedValue.validate(); err != nil {
 		return Amount{}, err
 	}
