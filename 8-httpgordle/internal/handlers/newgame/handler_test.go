@@ -20,7 +20,7 @@ func TestHandle(t *testing.T) {
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
 	assert.JSONEq(
 		t,
-		`{"attempts_left":0, "guesses":null, "id":"", "status":"", "word_length":0}`,
+		`{"attempts_left":0, "guesses":[], "id":"", "status":"", "word_length":0}`,
 		recorder.Body.String(),
 	)
 }
