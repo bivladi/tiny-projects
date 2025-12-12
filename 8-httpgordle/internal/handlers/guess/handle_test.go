@@ -1,6 +1,7 @@
 package guess
 
 import (
+	"learngo/httpgordle/internal/session"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -22,9 +23,22 @@ func TestHandle(t *testing.T) {
 	req.SetPathValue(api.GameID, "123456")
 
 	recorder := httptest.NewRecorder()
-	Handle(recorder, req)
+	handleFunc := Handle(gameGuesserStub{})
+	handleFunc.ServeHTTP(recorder, req)
 
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
 	assert.JSONEq(t, `{"id":"123456","attempts_left":0,"guesses":[],"word_length":0,"status":""}`, recorder.Body.String())
+}
+
+type gameGuesserStub struct {
+	error
+}
+
+func (g gameGuesserStub) Find(game session.GameID) (session.Game, error) {
+	return session.Game{}, g.error
+}
+
+func (g gameGuesserStub) Update(game session.Game) error {
+	return nil
 }

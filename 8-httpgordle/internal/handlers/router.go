@@ -5,6 +5,7 @@ import (
 	"learngo/httpgordle/internal/handlers/getstatus"
 	"learngo/httpgordle/internal/handlers/guess"
 	"learngo/httpgordle/internal/handlers/newgame"
+	"learngo/httpgordle/internal/repository"
 	"net/http"
 )
 
@@ -13,16 +14,10 @@ import (
 //   - Create a new game;
 //
 // The provided router is ready to serve.
-func NewRouter() *http.ServeMux {
+func NewRouter(db *repository.GameRepository) *http.ServeMux {
 	r := http.NewServeMux()
-	r.HandleFunc(http.MethodPost+" "+api.NewGameRoute, newgame.Handle)
+	r.HandleFunc(http.MethodPost+" "+api.NewGameRoute, newgame.Handle(db))
 	r.HandleFunc(http.MethodGet+" "+api.GetStatusRoute, getstatus.Handle)
-	r.HandleFunc(http.MethodPut+" "+api.GuessRoute, guess.Handle)
+	r.HandleFunc(http.MethodPut+" "+api.GuessRoute, guess.Handle(db))
 	return r
-}
-
-func Mux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc(api.NewGameRoute, newgame.Handle)
-	return mux
 }

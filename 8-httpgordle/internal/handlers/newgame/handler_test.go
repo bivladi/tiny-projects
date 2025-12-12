@@ -1,6 +1,7 @@
 package newgame
 
 import (
+	"learngo/httpgordle/internal/session"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +15,8 @@ func TestHandle(t *testing.T) {
 	require.NoError(t, err)
 	recorder := httptest.NewRecorder()
 
-	Handle(recorder, req)
+	handleFunc := Handle(gameAdderStub{})
+	handleFunc.ServeHTTP(recorder, req)
 
 	assert.Equal(t, http.StatusCreated, recorder.Code)
 	assert.Equal(t, "application/json", recorder.Header().Get("Content-Type"))
@@ -23,4 +25,12 @@ func TestHandle(t *testing.T) {
 		`{"attempts_left":0, "guesses":[], "id":"", "status":"", "word_length":0}`,
 		recorder.Body.String(),
 	)
+}
+
+type gameAdderStub struct {
+	err error
+}
+
+func (g gameAdderStub) Add(_ session.Game) error {
+	return g.err
 }
