@@ -1,9 +1,13 @@
 package session
 
-import "errors"
+import (
+	"errors"
+	"learngo/httpgordle/internal/gordle"
+)
 
 type Game struct {
 	ID           GameID
+	Gordle       gordle.Game
 	AttemptsLeft byte
 	Guesses      []Guess
 	Status       Status

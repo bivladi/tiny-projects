@@ -9,7 +9,8 @@ func ToGameResponse(g session.Game) GameResponse {
 		AttemptsLeft: g.AttemptsLeft,
 		Guesses:      make([]Guess, len(g.Guesses)),
 		Status:       string(g.Status),
-		// TODO WordLength
+		WordLength:   byte(len(g.Gordle.ShowAnswer())),
+		Solution:     g.Gordle.ShowAnswer(),
 	}
 
 	for index := 0; index < len(g.Guesses); index++ {

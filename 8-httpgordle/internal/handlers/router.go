@@ -16,8 +16,8 @@ import (
 // The provided router is ready to serve.
 func NewRouter(db *repository.GameRepository) *http.ServeMux {
 	r := http.NewServeMux()
-	r.HandleFunc(http.MethodPost+" "+api.NewGameRoute, newgame.Handle(db))
-	r.HandleFunc(http.MethodGet+" "+api.GetStatusRoute, getstatus.Handle)
-	r.HandleFunc(http.MethodPut+" "+api.GuessRoute, guess.Handle(db))
+	r.HandleFunc(http.MethodPost+" "+api.NewGameRoute, newgame.Handler(db))
+	r.HandleFunc(http.MethodGet+" "+api.GetStatusRoute, getstatus.Handler(db))
+	r.HandleFunc(http.MethodPut+" "+api.GuessRoute, guess.Handler(db))
 	return r
 }
